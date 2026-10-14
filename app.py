@@ -98,7 +98,35 @@ def create_app(test_config=None):
 
             return {"access_token": create_access_token(identity=credentials["username"])}, 200
 
+    class BlacklistResource(Resource):
+        @jwt_required()
+        def post(self):
+            payload = request.get_json(silent=True)
+            if not isinstance(payload, dict):
+                return {"message": "Request body must be a JSON object."}, 400
+            try:
+                values = BlacklistCreateSchema().load(payload)
+            except ValidationError as error:
+                return {"message": "Invalid request.", "errors": error.messages}, 400
+
+            email = values["email"].strip().casefold()
+            entry = BlacklistEntry(
+                email=email,
+                app_uuid=str(values["app_uuid"]),
+                blocked_reason=values.get("blocked_reason"),
+                source_ip=request.remote_addr or "0.0.0.0",
+            )
+            db.session.add(entry)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                return {"message": "This email already belongs to the blacklist."}, 409
+
+            return {"message": "Email added to the blacklist.", "email": email}, 201
+
     api.add_resource(TokenResource, "/auth/token")
+    api.add_resource(BlacklistResource, "/blacklists")
 
     with app.app_context():
         db.create_all()
