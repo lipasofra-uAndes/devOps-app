@@ -125,8 +125,22 @@ def create_app(test_config=None):
 
             return {"message": "Email added to the blacklist.", "email": email}, 201
 
+    class BlacklistLookupResource(Resource):
+        @jwt_required()
+        def get(self, email):
+            normalized_email = email.strip().casefold()
+            entry = db.session.execute(
+                db.select(BlacklistEntry).where(BlacklistEntry.email == normalized_email)
+            ).scalar_one_or_none()
+            return {
+                "email": normalized_email,
+                "blacklisted": entry is not None,
+                "blocked_reason": entry.blocked_reason if entry else None,
+            }, 200
+
     api.add_resource(TokenResource, "/auth/token")
     api.add_resource(BlacklistResource, "/blacklists")
+    api.add_resource(BlacklistLookupResource, "/blacklists/<string:email>")
 
     with app.app_context():
         db.create_all()
