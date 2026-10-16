@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from app import BlacklistEntry, create_app, db
@@ -98,3 +100,21 @@ def test_lookup_of_unlisted_email_returns_false(client, auth_headers):
     assert response.status_code == 200
     assert response.json["blacklisted"] is False
     assert response.json["blocked_reason"] is None
+
+
+def test_version_header_is_present_on_health_and_authenticated_response(client, auth_headers):
+    expected_version = Path(__file__).parents[1].joinpath("VERSION").read_text(encoding="utf-8").strip()
+    health = client.get("/health")
+    lookup = client.get("/blacklists/missing@example.com", headers=auth_headers)
+    assert health.status_code == 200
+    assert health.headers["X-App-Version"] == expected_version
+    assert lookup.headers["X-App-Version"] == expected_version
+
+
+def test_authentication_errors_are_401_in_production_mode():
+    app = create_app({"SQLALCHEMY_DATABASE_URI": "sqlite://"})
+    client = app.test_client()
+    assert client.get("/blacklists/person@example.com").status_code == 401
+    assert client.get(
+        "/blacklists/person@example.com", headers={"Authorization": "Bearer invalid"}
+    ).status_code == 422

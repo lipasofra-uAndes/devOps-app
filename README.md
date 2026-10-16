@@ -78,4 +78,29 @@ La aplicación crea las tablas al iniciar. Antes de utilizarla con datos importa
 
 ## Postman
 
-Importa `postman/blacklist-api.postman_collection.json` y `postman/local.postman_environment.json`. Ejecuta primero **Obtener JWT**; la colección guarda automáticamente el token en el environment. Luego prueba los escenarios de alta, duplicado, consulta, validación y autenticación.
+Importa `postman/blacklist-api.postman_collection.json` y `postman/local.postman_environment.json`.
+En el environment, configura `base_url` con la URL del entorno, `auth_username` y `auth_password` con las credenciales autorizadas. Mantén el environment con secretos fuera de Git. Ejecuta **toda la colección en orden**: crea un email único por ejecución y guarda el JWT solo como variable temporal de la colección. Incluye 11 escenarios de salud, alta, duplicado, consultas, validación y acceso no autorizado. Cada endpoint contiene descripción y ejemplos de respuesta para publicar la documentación desde Postman. La URL pública de esa documentación se debe agregar al informe.
+
+Para verificar automáticamente desde Windows con Newman (sin guardar credenciales):
+
+```powershell
+$env:AUTH_USERNAME = '<usuario>'
+$env:AUTH_PASSWORD = '<contraseña>'
+npx --yes newman run postman/blacklist-api.postman_collection.json -e postman/local.postman_environment.json --env-var base_url=https://<dominio> --env-var auth_username=$env:AUTH_USERNAME --env-var auth_password=$env:AUTH_PASSWORD
+```
+
+`postman/build_collection.py` regenera los JSON versionados. No introduzcas datos reales en el environment de ejemplo.
+
+## Medición de estrategias de despliegue
+
+El archivo `VERSION` viaja dentro de cada paquete de código y aparece en la cabecera `X-App-Version` de todas las respuestas. Cambia `VERSION` (por ejemplo `v1` a `v2`) **antes de empaquetar** la versión nueva. No uses una variable de entorno para distinguir paquetes, porque las instancias antiguas podrían recibir el mismo valor.
+
+El siguiente monitor consulta continuamente un email inexistente con JWT durante cada despliegue manual. Registra una fila por petición en CSV y un resumen JSON con éxitos, fallos, disponibilidad, latencia y cantidad de respuestas por versión. No modifica la lista negra. Ejecútalo antes de iniciar la estrategia en Elastic Beanstalk y déjalo activo hasta que el entorno vuelva a estar estable:
+
+```powershell
+$env:AUTH_USERNAME = '<usuario>'
+$env:AUTH_PASSWORD = '<contraseña>'
+python scripts/monitor_deployment.py --base-url https://<dominio> --strategy rolling --duration 900 --interval 1
+```
+
+Repite con nombres como `all-at-once`, `rolling-additional-batch` e `immutable`. Los archivos se guardan en `results/`, que está excluido de Git porque pueden contener la URL del entorno y datos de las pruebas. El monitor muestra `unknown` si el paquete desplegado todavía no envía `X-App-Version`. Una muestra con error incluye respuestas HTTP distintas de 200, tiempos de espera y respuestas cuyo JSON no corresponde a la consulta esperada. Los datos son observaciones del cliente durante la ventana de medición; usa eventos y capturas de AWS para determinar duración total, instancias originales o nuevas y cantidad de EC2 de cada estrategia.

@@ -1,13 +1,16 @@
 import hmac
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 
 from flask import Flask, request
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
+from flask_jwt_extended.exceptions import JWTExtendedException
 from flask_marshmallow import Marshmallow
 from flask_restful import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import ValidationError, fields, validate
+from jwt.exceptions import PyJWTError
 from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -15,6 +18,13 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 db = SQLAlchemy()
 ma = Marshmallow()
 jwt = JWTManager()
+
+
+class AuthAwareApi(Api):
+    def error_router(self, original_handler, error):
+        if isinstance(error, (JWTExtendedException, PyJWTError)):
+            return original_handler(error)
+        return super().error_router(original_handler, error)
 
 
 class BlacklistEntry(db.Model):
@@ -43,6 +53,8 @@ class TokenSchema(ma.Schema):
 
 def create_app(test_config=None):
     app = Flask(__name__)
+    # VERSION travels inside each source bundle, so old and new instances are distinguishable.
+    app_version = (Path(__file__).with_name("VERSION").read_text(encoding="utf-8").strip())
     database_url = os.getenv("DATABASE_URL", "sqlite:///blacklist.db")
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -63,14 +75,14 @@ def create_app(test_config=None):
     db.init_app(app)
     ma.init_app(app)
     jwt.init_app(app)
-    api = Api(app)
+    api = AuthAwareApi(app)
 
     # Elastic Beanstalk's load balancer is the single trusted proxy in front of the app.
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     @app.after_request
     def add_deployment_version(response):
-        response.headers["X-App-Version"] = os.getenv("APP_VERSION", "local")
+        response.headers["X-App-Version"] = app_version
         return response
 
     @app.get("/health")
