@@ -5,6 +5,7 @@ import csv
 import json
 import os
 import statistics
+import sys
 import time
 import urllib.error
 import urllib.parse
@@ -40,6 +41,21 @@ def request(url, token=None, payload=None, timeout=10):
         return 0, {}, b"", round((time.perf_counter() - start) * 1000, 2), str(error)
 
 
+def fetch_token(base_url, username, password, timeout):
+    """Return (token, error); error is empty when a token was issued."""
+    status, _, body, _, error = request(
+        base_url + "/auth/token",
+        payload={"username": username, "password": password},
+        timeout=timeout,
+    )
+    if status != 200:
+        return None, f"HTTP {status}: {error or body[:200].decode('utf-8', 'replace')}"
+    try:
+        return json.loads(body)["access_token"], ""
+    except (ValueError, KeyError, TypeError):
+        return None, "JWT response did not contain access_token"
+
+
 def percentile(values, percentage):
     if not values:
         return None
@@ -52,37 +68,41 @@ def percentile(values, percentage):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base-url", required=True, help="Elastic Beanstalk HTTPS origin")
+    parser.add_argument("--base-url", required=True, help="Elastic Beanstalk origin (HTTPS recommended)")
     parser.add_argument("--strategy", required=True, help="Name of deployment strategy")
     parser.add_argument("--duration", type=float, default=900, help="Sampling duration in seconds")
     parser.add_argument("--interval", type=float, default=1, help="Seconds between sample starts")
     parser.add_argument("--timeout", type=float, default=10, help="Per-request timeout in seconds")
     parser.add_argument("--output-dir", default="results", help="CSV and summary JSON directory")
+    parser.add_argument(
+        "--allow-insecure-http",
+        action="store_true",
+        help="Allow plain HTTP to a non-local host (e.g. the default *.elasticbeanstalk.com URL without a certificate)",
+    )
     args = parser.parse_args()
     if args.duration <= 0 or args.interval <= 0 or args.timeout <= 0:
         parser.error("duration, interval and timeout must be positive")
     parsed_url = urllib.parse.urlparse(args.base_url)
-    if parsed_url.scheme != "https" and not (
-        parsed_url.scheme == "http" and parsed_url.hostname in {"localhost", "127.0.0.1"}
-    ):
-        parser.error("Use HTTPS for deployed environments; HTTP is allowed only for localhost")
+    if parsed_url.scheme not in {"http", "https"} or not parsed_url.hostname:
+        parser.error("--base-url must be an http:// or https:// origin")
+    if parsed_url.scheme == "http" and parsed_url.hostname not in {"localhost", "127.0.0.1"}:
+        if not args.allow_insecure_http:
+            parser.error("Use HTTPS for deployed environments, or pass --allow-insecure-http explicitly")
+        print(
+            "WARNING: using plain HTTP; credentials and JWT travel unencrypted. "
+            "Use only with test credentials and rotate them afterwards.",
+            file=sys.stderr,
+            flush=True,
+        )
 
     username = os.getenv("AUTH_USERNAME")
     password = os.getenv("AUTH_PASSWORD")
     if not username or not password:
         parser.error("Set AUTH_USERNAME and AUTH_PASSWORD in the current shell")
     base_url = args.base_url.rstrip("/")
-    status, _, body, _, error = request(
-        base_url + "/auth/token",
-        payload={"username": username, "password": password},
-        timeout=args.timeout,
-    )
-    if status != 200:
-        parser.error(f"JWT request failed (HTTP {status}): {error or body[:200].decode('utf-8', 'replace')}")
-    try:
-        token = json.loads(body)["access_token"]
-    except (ValueError, KeyError, TypeError):
-        parser.error("JWT response did not contain access_token")
+    token, error = fetch_token(base_url, username, password, args.timeout)
+    if not token:
+        parser.error(f"JWT request failed ({error})")
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -94,6 +114,7 @@ def main():
     email = urllib.parse.quote(f"probe-{stamp}@example.invalid", safe="@")
     url = base_url + "/blacklists/" + email
     rows = []
+    token_refreshes = 0
     started_at = utc_now()
     start = time.monotonic()
     next_sample = start
@@ -105,6 +126,17 @@ def main():
                 continue
             timestamp = utc_now()
             status, headers, body, latency, error = request(url, token=token, timeout=args.timeout)
+            token_refreshed = False
+            if status == 401:
+                # The JWT expires (15 min by default) before long deployments finish; an expired
+                # token is a client artifact, not downtime, so renew it and repeat the sample.
+                new_token, refresh_error = fetch_token(base_url, username, password, args.timeout)
+                if new_token:
+                    token, token_refreshed = new_token, True
+                    token_refreshes += 1
+                    status, headers, body, latency, error = request(url, token=token, timeout=args.timeout)
+                else:
+                    error = f"token refresh failed ({refresh_error})"
             version = headers.get("X-App-Version", "")
             try:
                 payload = json.loads(body)
@@ -117,10 +149,15 @@ def main():
                 "latency_ms": latency,
                 "version": version,
                 "success": valid,
+                "token_refreshed": token_refreshed,
                 "error": error or ("unexpected API response" if not valid else ""),
             }
             rows.append(row)
-            print(f"{timestamp} status={status} ms={latency} version={version or '?'} success={valid}", flush=True)
+            print(
+                f"{timestamp} status={status} ms={latency} version={version or '?'} success={valid}"
+                + (" token_refreshed=True" if token_refreshed else ""),
+                flush=True,
+            )
             next_sample += args.interval
             if next_sample < time.monotonic():
                 next_sample = time.monotonic()
@@ -128,7 +165,10 @@ def main():
         print("Stopped by user; writing partial results.", flush=True)
     finally:
         with csv_path.open("w", newline="", encoding="utf-8") as stream:
-            writer = csv.DictWriter(stream, fieldnames=["timestamp_utc", "status", "latency_ms", "version", "success", "error"])
+            writer = csv.DictWriter(
+                stream,
+                fieldnames=["timestamp_utc", "status", "latency_ms", "version", "success", "token_refreshed", "error"],
+            )
             writer.writeheader()
             writer.writerows(rows)
         successful = [row["latency_ms"] for row in rows if row["success"]]
@@ -141,6 +181,7 @@ def main():
             "successful": len(successful),
             "failed": len(rows) - len(successful),
             "availability_percent": round(100 * len(successful) / len(rows), 2) if rows else None,
+            "token_refreshes": token_refreshes,
             "status_counts": dict(Counter(str(row["status"]) for row in rows)),
             "version_counts": dict(Counter(row["version"] or "unknown" for row in rows)),
             "successful_latency_ms": {

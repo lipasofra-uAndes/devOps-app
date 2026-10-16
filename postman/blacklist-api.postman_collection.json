@@ -80,8 +80,22 @@
           "name": "200 JWT",
           "originalRequest": {
             "method": "POST",
-            "header": [],
-            "url": "{{base_url}}/auth/token"
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/token",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"api-client\",\n  \"password\": \"<password>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "status": "OK",
           "code": 200,
@@ -176,8 +190,22 @@
           "name": "201 creado",
           "originalRequest": {
             "method": "POST",
-            "header": [],
-            "url": "{{base_url}}/blacklists"
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/blacklists",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente@example.com\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"blocked_reason\": \"Prueba Postman Entrega 1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "status": "Created",
           "code": 201,
@@ -229,8 +257,22 @@
           "name": "409 duplicado",
           "originalRequest": {
             "method": "POST",
-            "header": [],
-            "url": "{{base_url}}/blacklists"
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/blacklists",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cliente@example.com\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "status": "Conflict",
           "code": 409,
@@ -354,6 +396,39 @@
             ]
           }
         }
+      ],
+      "response": [
+        {
+          "name": "400 email inválido",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/blacklists",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"no-es-correo\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"message\": \"Invalid request.\",\n  \"errors\": {\n    \"email\": [\n      \"Not a valid email address.\"\n    ]\n  }\n}"
+        }
       ]
     },
     {
@@ -387,6 +462,39 @@
               "pm.test('UUID inválido 400', function () { pm.response.to.have.status(400); });"
             ]
           }
+        }
+      ],
+      "response": [
+        {
+          "name": "400 UUID inválido",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/blacklists",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"otro@example.com\",\n  \"app_uuid\": \"no-es-uuid\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"message\": \"Invalid request.\",\n  \"errors\": {\n    \"app_uuid\": [\n      \"Not a valid UUID.\"\n    ]\n  }\n}"
         }
       ]
     },
@@ -422,6 +530,39 @@
             ]
           }
         }
+      ],
+      "response": [
+        {
+          "name": "400 motivo demasiado largo",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/blacklists",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"otro@example.com\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"blocked_reason\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"message\": \"Invalid request.\",\n  \"errors\": {\n    \"blocked_reason\": [\n      \"Longer than maximum length 255.\"\n    ]\n  }\n}"
+        }
       ]
     },
     {
@@ -444,6 +585,25 @@
               "pm.test('Sin token 401', function () { pm.response.to.have.status(401); });"
             ]
           }
+        }
+      ],
+      "response": [
+        {
+          "name": "401 sin token",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/blacklists/cliente@example.com"
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"msg\": \"Missing Authorization Header\"\n}"
         }
       ]
     },
@@ -481,6 +641,39 @@
               "pm.test('Credenciales inválidas 401', function () { pm.response.to.have.status(401); });"
             ]
           }
+        }
+      ],
+      "response": [
+        {
+          "name": "401 credenciales inválidas",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/token",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"api-client\",\n  \"password\": \"invalid-password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"message\": \"Invalid username or password.\"\n}"
         }
       ]
     }

@@ -89,7 +89,7 @@ $env:AUTH_PASSWORD = '<contraseña>'
 npx --yes newman run postman/blacklist-api.postman_collection.json -e postman/local.postman_environment.json --env-var base_url=https://<dominio> --env-var auth_username=$env:AUTH_USERNAME --env-var auth_password=$env:AUTH_PASSWORD
 ```
 
-`postman/build_collection.py` regenera los JSON versionados. No introduzcas datos reales en el environment de ejemplo.
+`postman/build_collection.py` regenera los JSON versionados. Todos los escenarios incluyen un ejemplo de solicitud y respuesta; `tests/test_app.py` verifica que los ejemplos de error coincidan con lo que responde la API.
 
 ## Medición de estrategias de despliegue
 
