@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -118,3 +119,26 @@ def test_authentication_errors_are_401_in_production_mode():
     assert client.get(
         "/blacklists/person@example.com", headers={"Authorization": "Bearer invalid"}
     ).status_code == 422
+
+
+def test_postman_error_examples_match_api_responses(client, auth_headers):
+    # The published Postman documentation must show what the API actually returns.
+    collection_path = Path(__file__).parents[1] / "postman" / "blacklist-api.postman_collection.json"
+    collection = json.loads(collection_path.read_text(encoding="utf-8"))
+    checked = 0
+    for item in collection["item"]:
+        no_auth = item["request"].get("auth", {}).get("type") == "noauth"
+        for example in item.get("response", []):
+            if example["code"] not in (400, 401):
+                continue
+            original = example["originalRequest"]
+            response = client.open(
+                original["url"].removeprefix("{{base_url}}"),
+                method=original["method"],
+                json=json.loads(original["body"]["raw"]) if "body" in original else None,
+                headers={} if no_auth else auth_headers,
+            )
+            assert response.status_code == example["code"], item["name"]
+            assert response.json == json.loads(example["body"]), item["name"]
+            checked += 1
+    assert checked == 5

@@ -155,6 +155,19 @@ def create_app(test_config=None):
     api.add_resource(BlacklistLookupResource, "/blacklists/<string:email>")
 
     with app.app_context():
-        db.create_all()
+        create_schema()
 
     return app
+
+
+# Arbitrary application-wide key for the PostgreSQL advisory lock that guards schema creation.
+SCHEMA_LOCK_KEY = 4815162342
+
+
+def create_schema():
+    # Elastic Beanstalk starts several instances at once; without the lock, two of them can race
+    # on CREATE TABLE against an empty RDS database and one fails to boot.
+    with db.engine.begin() as connection:
+        if connection.dialect.name == "postgresql":
+            connection.execute(db.text("SELECT pg_advisory_xact_lock(:key)"), {"key": SCHEMA_LOCK_KEY})
+        db.metadata.create_all(connection)
