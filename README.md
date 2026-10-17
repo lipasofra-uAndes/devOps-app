@@ -78,8 +78,10 @@ La aplicación crea las tablas al iniciar. Antes de utilizarla con datos importa
 
 ## Postman
 
-Importa `postman/blacklist-api.postman_collection.json` y `postman/local.postman_environment.json`.
-En el environment, configura `base_url` con la URL del entorno, `auth_username` y `auth_password` con las credenciales autorizadas. Mantén el environment con secretos fuera de Git. Ejecuta **toda la colección en orden**: crea un email único por ejecución y guarda el JWT solo como variable temporal de la colección. Incluye 11 escenarios de salud, alta, duplicado, consultas, validación y acceso no autorizado. Cada endpoint contiene descripción y ejemplos de respuesta para publicar la documentación desde Postman. La URL pública de esa documentación se debe agregar al informe.
+Documentación publicada: <https://documenter.getpostman.com/view/14923156/2sBYHSxfXh>
+
+Importa `postman/blacklist-api.postman_collection.json` y el environment que corresponda: `postman/aws.postman_environment.json` (Elastic Beanstalk, `http://devops-blacklist-api-dev.eba-2zph7mid.us-east-1.elasticbeanstalk.com`) o `postman/local.postman_environment.json` (`http://127.0.0.1:5000`). La colección usa la URL de AWS por defecto.
+En el environment, configura `auth_username` y `auth_password` con las credenciales autorizadas. Mantén el environment con secretos fuera de Git. Ejecuta **toda la colección en orden**: crea un email único por ejecución y guarda el JWT solo como variable temporal de la colección. Incluye 11 escenarios de salud, alta, duplicado, consultas, validación y acceso no autorizado. Cada endpoint contiene descripción y ejemplos de respuesta para publicar la documentación desde Postman. La URL pública de la documentación debe incluirse en el informe.
 
 Para verificar automáticamente desde Windows con Newman (sin guardar credenciales):
 
@@ -90,6 +92,8 @@ npx --yes newman run postman/blacklist-api.postman_collection.json -e postman/lo
 ```
 
 `postman/build_collection.py` regenera los JSON versionados. Todos los escenarios incluyen un ejemplo de solicitud y respuesta; `tests/test_app.py` verifica que los ejemplos de error coincidan con lo que responde la API.
+
+La evidencia de los escenarios y la ejecución local de la Entrega 1 está en [`docs/entrega1-postman.md`](docs/entrega1-postman.md).
 
 ## Medición de estrategias de despliegue
 

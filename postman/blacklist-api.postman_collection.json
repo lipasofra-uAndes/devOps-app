@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Global Email Blacklist API - Entrega 1",
-    "description": "Escenarios reproducibles para la API de lista negra. Ejecutar la colección completa en orden. Configurar base_url, auth_username y auth_password en un environment. No exportar credenciales reales. El email se genera por ejecución.",
+    "description": "Escenarios reproducibles para la API de lista negra. Ejecutar la colección completa en orden. base_url apunta por defecto al entorno Elastic Beanstalk (us-east-1); usar el environment local para pruebas en 127.0.0.1:5000. Configurar auth_username y auth_password en un environment. No exportar credenciales reales. El email se genera por ejecución.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -17,7 +17,7 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://127.0.0.1:5000"
+      "value": "http://devops-blacklist-api-dev.eba-2zph7mid.us-east-1.elasticbeanstalk.com"
     },
     {
       "key": "access_token",

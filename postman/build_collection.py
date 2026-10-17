@@ -6,6 +6,8 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 UUID = "123e4567-e89b-12d3-a456-426614174000"
+AWS_BASE_URL = "http://devops-blacklist-api-dev.eba-2zph7mid.us-east-1.elasticbeanstalk.com"
+LOCAL_BASE_URL = "http://127.0.0.1:5000"
 
 
 def item(name, method, path, description, tests, body=None, no_auth=False, pre=None, examples=None):
@@ -47,11 +49,11 @@ def example(name, code, method, path, body, request_body=None):
 collection = {
     "info": {
         "name": "Global Email Blacklist API - Entrega 1",
-        "description": "Escenarios reproducibles para la API de lista negra. Ejecutar la colección completa en orden. Configurar base_url, auth_username y auth_password en un environment. No exportar credenciales reales. El email se genera por ejecución.",
+        "description": "Escenarios reproducibles para la API de lista negra. Ejecutar la colección completa en orden. base_url apunta por defecto al entorno Elastic Beanstalk (us-east-1); usar el environment local para pruebas en 127.0.0.1:5000. Configurar auth_username y auth_password en un environment. No exportar credenciales reales. El email se genera por ejecución.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     },
     "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]},
-    "variable": [{"key": "base_url", "value": "http://127.0.0.1:5000"}, {"key": "access_token", "value": ""}, {"key": "test_email", "value": ""}],
+    "variable": [{"key": "base_url", "value": AWS_BASE_URL}, {"key": "access_token", "value": ""}, {"key": "test_email", "value": ""}],
     "item": [
         item("01 Obtener JWT", "POST", "/auth/token", "Genera JWT Bearer. 200: access_token; 401: credenciales inválidas.",
              ["pm.test('JWT emitido', function () { pm.response.to.have.status(200); const data = pm.response.json(); pm.expect(data.access_token).to.be.a('string').and.not.empty; pm.collectionVariables.set('access_token', data.access_token); });"],
@@ -108,20 +110,23 @@ collection = {
     ],
 }
 
-environment = {
-    "id": "bfeec443-8b78-455e-91f2-0dfd58c9e14b",
-    "name": "Blacklist API - local",
-    "values": [
-        {"key": "base_url", "value": "http://127.0.0.1:5000", "type": "default", "enabled": True},
-        {"key": "auth_username", "value": "", "type": "default", "enabled": True},
-        {"key": "auth_password", "value": "", "type": "secret", "enabled": True},
-    ],
-    "_postman_variable_scope": "environment",
-    "_postman_exported_using": "Postman/11",
-}
+def environment(env_id, name, base_url):
+    return {
+        "id": env_id,
+        "name": name,
+        "values": [
+            {"key": "base_url", "value": base_url, "type": "default", "enabled": True},
+            {"key": "auth_username", "value": "", "type": "default", "enabled": True},
+            {"key": "auth_password", "value": "", "type": "secret", "enabled": True},
+        ],
+        "_postman_variable_scope": "environment",
+        "_postman_exported_using": "Postman/11",
+    }
+
 
 for name, data in [
     ("blacklist-api.postman_collection.json", collection),
-    ("local.postman_environment.json", environment),
+    ("local.postman_environment.json", environment("bfeec443-8b78-455e-91f2-0dfd58c9e14b", "Blacklist API - local", LOCAL_BASE_URL)),
+    ("aws.postman_environment.json", environment("5c1f7a1e-3d2b-4c8e-9f60-2a7b1d4e8c31", "Blacklist API - AWS Elastic Beanstalk", AWS_BASE_URL)),
 ]:
     (HERE / name).write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
