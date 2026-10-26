@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - python --version
+      - pip install --upgrade pip
+
+  pre_build:
+    commands:
+      - pip install -r requirements-dev.txt
+
+  build:
+    commands:
+      - python -m pytest -v
+
+artifacts:
+  name: blacklist-api-$CODEBUILD_BUILD_NUMBER
+  files:
+    - app.py
+    - application.py
+    - Procfile
+    - requirements.txt
+    - VERSION
+  discard-paths: no
