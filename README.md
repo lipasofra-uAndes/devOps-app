@@ -1,5 +1,8 @@
 # Integrantes del equipo DevOps Legends
 - Jesus Sierra
+- Santiago Guerrero
+- Danny Vasquez
+- Lina Soler
 
 
 # Entregas
