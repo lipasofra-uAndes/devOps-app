@@ -1,3 +1,11 @@
+# Integrantes del equipo DevOps Legends
+- Jesus Sierra
+- Santiago Guerrero
+- Danny Vasquez
+- Lina Soler
+
+# Entregas
+
 ## Entrega 1
 - [video](https://uniandes-my.sharepoint.com/:v:/g/personal/l_solerf_uniandes_edu_co/IQAyQkBOVZDhRrzJq5mUBaWRASALO5vROyXbzKFKWZpkd8c?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=ryQQ67)
 
