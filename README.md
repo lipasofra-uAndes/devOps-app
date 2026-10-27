@@ -90,9 +90,30 @@ Health check sin autenticación que ejecuta una consulta a la base de datos. Ret
 ## Pruebas
 
 ```bash
-pip install pytest
+pip install -r requirements-dev.txt
 python -m pytest -q
 ```
+
+La suite incluye pruebas unitarias de los cuatro endpoints con persistencia simulada en
+`tests/test_endpoints_unit.py`, y pruebas de integración con SQLite en memoria en
+`tests/test_app.py`. No utiliza RDS ni credenciales de AWS. Las credenciales de la
+API utilizadas por las pruebas son exclusivamente de prueba.
+
+## Integración continua (Entrega 2)
+
+`buildspec.yml` instala las dependencias y ejecuta toda la suite con un informe
+JUnit en `reports/tests.xml`. Solo si las pruebas pasan, ejecuta
+`python scripts/package_artifact.py` para crear `dist/blacklist-api.zip`.
+El ZIP contiene `app.py`, `application.py`, `Procfile`, `requirements.txt` y
+`VERSION` en su raíz; excluye secretos, bases de datos y archivos de desarrollo.
+CodeBuild publica ese ZIP como artefacto. Si CodePipeline envuelve la salida en
+otro ZIP de S3, el paquete desplegable es el `blacklist-api.zip` interior.
+
+La canalización de esta entrega debe terminar en Build: no debe tener una etapa
+Deploy. El disparador de GitHub se configura en AWS, no en `buildspec.yml`.
+El repositorio usa `main`; el enunciado indica `master`, por lo que el equipo
+debe confirmar con el tutor la equivalencia o alinear rama y filtro antes de la
+entrega. Una ejecución manual exitosa no demuestra el disparador automático.
 
 ## AWS Elastic Beanstalk y RDS
 

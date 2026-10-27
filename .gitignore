@@ -5,5 +5,7 @@ __pycache__/
 *.py[cod]
 blacklist.db
 results/
+reports/
+dist/
 .env.*
 !.env.example

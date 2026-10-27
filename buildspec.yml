@@ -13,15 +13,14 @@ phases:
       - pip install -r requirements-dev.txt
 
   build:
+    on-failure: ABORT
     commands:
-      - python -m pytest -v
+      - python -m pytest -v --junitxml=reports/tests.xml
+      - python scripts/package_artifact.py
 
 artifacts:
   name: blacklist-api-$CODEBUILD_BUILD_NUMBER
   files:
-    - app.py
-    - application.py
-    - Procfile
-    - requirements.txt
-    - VERSION
+    - blacklist-api.zip
+  base-directory: dist
   discard-paths: no
