@@ -1,7 +1,7 @@
 ## Entrega 1
 - [video](https://uniandes-my.sharepoint.com/:v:/g/personal/l_solerf_uniandes_edu_co/IQAyQkBOVZDhRrzJq5mUBaWRASALO5vROyXbzKFKWZpkd8c?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=ryQQ67)
 
-- [coleccion postman](https://documenter.getpostman.com/view/14923156/2sBYHSxfXh)
+- [coleccion postman](https://documenter.getpostman.com/view/14923156/2sBYHSxfXh) 
 
 - [archivo analisis despliegues]( https://uniandes-my.sharepoint.com/:w:/g/personal/ds_guerrerom1_uniandes_edu_co/IQA0L47yb3pQRZbkXz0ucXqsAU63AdL9yd5Ivn_liI8GNbY?e=UXuwhV)
 
