@@ -103,6 +103,10 @@ API utilizadas por las pruebas son exclusivamente de prueba.
 `buildspec.yml` instala las dependencias y ejecuta toda la suite con un informe
 JUnit en `reports/tests.xml`. Solo si las pruebas pasan, ejecuta
 `python scripts/package_artifact.py` para crear `dist/blacklist-api.zip`.
+La sección `reports` publica ese XML en el grupo `pytest_reports`, consultable en
+la pestaña Reports de cada ejecución de CodeBuild. El rol de servicio de CodeBuild
+debe permitir `codebuild:CreateReportGroup`, `codebuild:CreateReport`,
+`codebuild:UpdateReport` y `codebuild:BatchPutTestCases` sobre el grupo correspondiente.
 El ZIP contiene `app.py`, `application.py`, `Procfile`, `requirements.txt` y
 `VERSION` en su raíz; excluye secretos, bases de datos y archivos de desarrollo.
 CodeBuild publica ese ZIP como artefacto. Si CodePipeline envuelve la salida en
