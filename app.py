@@ -133,7 +133,7 @@ def create_app(test_config=None):
                 db.session.commit()
             except IntegrityError:
                 db.session.rollback()
-                return {"message": "This email already belongs to the blacklist."}, 409
+                return {"message": "This email already belongs to the blacklist."}, 400
 
             return {"message": "Email added to the blacklist.", "email": email}, 201
 
