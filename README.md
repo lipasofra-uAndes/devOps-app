@@ -2,7 +2,7 @@
 - Jesus Sierra A.
 - Santiago Guerrero
 - Danny Vasquez
-- Lina P. Soler
+- Lina P. Soler F.
 
 # Entregas
 
