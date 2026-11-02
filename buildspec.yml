@@ -18,6 +18,13 @@ phases:
       - python -m pytest -v --junitxml=reports/tests.xml
       - python scripts/package_artifact.py
 
+reports:
+  pytest_reports:
+    files:
+      - tests.xml
+    base-directory: reports
+    file-format: JUNITXML
+
 artifacts:
   name: blacklist-api-$CODEBUILD_BUILD_NUMBER
   files:
