@@ -1,5 +1,9 @@
 version: 0.2
 
+env:
+  variables:
+    IMAGE_REPO_NAME: blacklist-api
+
 phases:
   install:
     runtime-versions:
@@ -9,14 +13,28 @@ phases:
       - pip install --upgrade pip
 
   pre_build:
+    on-failure: ABORT
     commands:
       - pip install -r requirements-dev.txt
+      - python -m pytest -v --junitxml=reports/tests.xml
+      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - REGISTRY=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - IMAGE_URI=$REGISTRY/$IMAGE_REPO_NAME
+      - COMMIT=${CODEBUILD_RESOLVED_SOURCE_VERSION:-build-$CODEBUILD_BUILD_NUMBER}
+      - IMAGE_TAG=$(echo "$COMMIT" | cut -c 1-12)
+      # AWS Academy has no ecsTaskExecutionRole: set EXECUTION_ROLE_ARN to the LabRole ARN in the CodeBuild project.
+      - EXECUTION_ROLE_ARN=${EXECUTION_ROLE_ARN:-arn:aws:iam::$ACCOUNT_ID:role/ecsTaskExecutionRole}
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REGISTRY
 
   build:
     on-failure: ABORT
     commands:
-      - python -m pytest -v --junitxml=reports/tests.xml
-      - python scripts/package_artifact.py
+      - docker build -t $IMAGE_URI:$IMAGE_TAG .
+      - docker push $IMAGE_URI:$IMAGE_TAG
+      - mkdir -p dist
+      - printf '{"ImageURI":"%s"}' "$IMAGE_URI:$IMAGE_TAG" > dist/imageDetail.json
+      - sed -e "s|<EXECUTION_ROLE_ARN>|$EXECUTION_ROLE_ARN|" -e "s|<AWS_REGION>|$AWS_DEFAULT_REGION|" taskdef.json > dist/taskdef.json
+      - cp appspec.yaml dist/appspec.yaml
 
 reports:
   pytest_reports:
@@ -26,8 +44,8 @@ reports:
     file-format: JUNITXML
 
 artifacts:
-  name: blacklist-api-$CODEBUILD_BUILD_NUMBER
   files:
-    - blacklist-api.zip
+    - imageDetail.json
+    - taskdef.json
+    - appspec.yaml
   base-directory: dist
-  discard-paths: no
