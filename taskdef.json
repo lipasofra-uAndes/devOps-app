@@ -6,7 +6,7 @@
   ],
   "cpu": "256",
   "memory": "512",
-  "executionRoleArn": "<EXECUTION_ROLE_ARN>",
+  "executionRoleArn": "arn:aws:iam::358148451739:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "blacklist-api",
@@ -42,7 +42,7 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/blacklist-api",
-          "awslogs-region": "<AWS_REGION>",
+          "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
       }
