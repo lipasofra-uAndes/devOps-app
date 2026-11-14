@@ -15,10 +15,19 @@
 
 ## Entrega 2
 
+- [video](https://uniandes-my.sharepoint.com/:v:/g/personal/dj_vasquez_uniandes_edu_co/IQBFvHSJCPJPQ5xn_4HRXD4RAVY8GASF7us6T54NDqQKUVU?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=EFk2hQ)
+
+
+- [archivo analisis corridas pipeline](https://uniandes-my.sharepoint.com/:v:/g/personal/dj_vasquez_uniandes_edu_co/IQBFvHSJCPJPQ5xn_4HRXD4RAVY8GASF7us6T54NDqQKUVU?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=EFk2hQ)
+
+
+## Entrega 3
+
 - [video]()
 
 
-- [archivo analisis corridas pipeline]()
+- [archivo analisis corridas pipeline despliegue continuo]()
+
 
 
 # Microservicio de lista negra
