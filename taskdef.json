@@ -1,0 +1,51 @@
+{
+  "family": "blacklist-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "<EXECUTION_ROLE_ARN>",
+  "containerDefinitions": [
+    {
+      "name": "blacklist-api",
+      "image": "<IMAGE1_NAME>",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 5000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "AUTH_USERNAME",
+          "value": "blacklist_admin"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "/devops/blacklist/DATABASE_URL"
+        },
+        {
+          "name": "JWT_SECRET_KEY",
+          "valueFrom": "/devops/blacklist/JWT_SECRET_KEY"
+        },
+        {
+          "name": "AUTH_PASSWORD",
+          "valueFrom": "/devops/blacklist/AUTH_PASSWORD"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/blacklist-api",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
