@@ -45,7 +45,8 @@ reports:
 
 artifacts:
   files:
-    - '**/*'
+    - appspec.yaml
+    - taskdef.json
     - imagedefinitions.json
     - imageDetail.json
   secondary-artifacts:
