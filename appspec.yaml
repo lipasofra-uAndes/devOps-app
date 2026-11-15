@@ -5,5 +5,5 @@ Resources:
       Properties:
         TaskDefinition: <TASK_DEFINITION>
         LoadBalancerInfo:
-          ContainerName: "blacklist-api-inexistente"
+          ContainerName: "blacklist-api"
           ContainerPort: 5000
