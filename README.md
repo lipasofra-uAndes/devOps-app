@@ -24,8 +24,7 @@
 ## Entrega 3
 
 - [Documento de análisis de corridas CI/CD](docs/entrega3/Proyecto%201%20entrega%203%20%E2%80%93%20Documento.pdf)
-- [Canva del equipo](https://www.canva.com/design/DAHakZKRaHY/uHW8sbw8N8bPAGvH0W5G3Q/edit)
-- Video de sustentación: pendiente de grabar e integrar los segmentos de Santiago y Jesús; agregar aquí el enlace definitivo con acceso para el tutor.
+- [video](https://uniandes-my.sharepoint.com/:v:/g/personal/ja_sierraa12_uniandes_edu_co/IQDauzIiN8U3SbpA5jWhjv-aAXSLfbeXK7TIugjjbUomnNM?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=fJXNYS)
 
 # Microservicio de lista negra
 
