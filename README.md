@@ -109,7 +109,8 @@ API utilizadas por las pruebas son exclusivamente de prueba.
 
 ## Integración continua (Entrega 2)
 
-`buildspec.yml` instala las dependencias y ejecuta toda la suite con un informe
+El proyecto histórico `devops-ci-build` usa un buildspec propio configurado en
+CodeBuild: instala las dependencias y ejecuta toda la suite con un informe
 JUnit en `reports/tests.xml`. Solo si las pruebas pasan, ejecuta
 `python scripts/package_artifact.py` para crear `dist/blacklist-api.zip`.
 El ZIP contiene `app.py`, `application.py`, `Procfile`, `requirements.txt` y
@@ -119,9 +120,33 @@ otro ZIP de S3, el paquete desplegable es el `blacklist-api.zip` interior.
 
 La canalización de esta entrega debe terminar en Build: no debe tener una etapa
 Deploy. El disparador de GitHub se configura en AWS, no en `buildspec.yml`.
-El repositorio usa `main`; el enunciado indica `master`, por lo que el equipo
-debe confirmar con el tutor la equivalencia o alinear rama y filtro antes de la
-entrega. Una ejecución manual exitosa no demuestra el disparador automático.
+La rama de entrega es `main`. Una ejecución manual exitosa no demuestra el
+disparador automático; se verifica el evento de push y el SHA en CodePipeline.
+
+## Entrega continua en Fargate (Entrega 3)
+
+La rama `main` activa `DevOps-Cd`: Source → CodeBuild `devops-cd` →
+CodeDeploy `blacklist-cd` / `blacklist-dg` → ECS `blacklist-cluster` /
+`blacklist-service`. Se reutilizan la VPC y los roles existentes.
+
+`buildspec.yml` instala `requirements-dev.txt` y ejecuta pytest antes de
+construir la imagen. Un fallo impide publicar y avanzar a Deploy. CodeBuild
+publica el informe JUnit en `reports/tests.xml`. La imagen se etiqueta con el
+SHA de origen y `imageDetail.json` referencia el digest publicado, para fijar
+la imagen de esa ejecución. El pipeline histórico conserva CI y su ZIP,
+sin publicar imágenes en ECR.
+
+El artefacto de CD contiene únicamente `appspec.yaml`, `taskdef.json` e
+`imageDetail.json`. La acción `CodeDeployToECS` sustituye `IMAGE1_NAME` en la
+definición de tarea. AppSpec, tarea y Gunicorn usan el contenedor
+`blacklist-api` y el puerto 5000. Los target groups comprueban `/health`.
+Los secretos provienen de SSM; no se incluyen valores en Git ni artefactos.
+
+La URL observada del balanceador es
+`http://blacklist-alb-451384455.us-east-1.elb.amazonaws.com`.
+Para Postman, sustituir `base_url` del environment por esta URL y configurar
+las credenciales autorizadas solo en la sesión local. Las pruebas locales
+usan SQLite/mocks; la colección contra Fargate valida el servicio desplegado.
 
 ## AWS Elastic Beanstalk y RDS
 

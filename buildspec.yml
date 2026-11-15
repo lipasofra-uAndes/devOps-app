@@ -6,11 +6,13 @@ env:
 
 phases:
   install:
+    on-failure: ABORT
     runtime-versions:
       python: 3.11
     commands:
       - python --version
       - pip install --upgrade pip
+      - python -m pip install -r requirements-dev.txt
 
   pre_build:
     on-failure: ABORT
@@ -22,19 +24,21 @@ phases:
     on-failure: ABORT
     commands:
       - echo Build started on `date`
+      - python -m pytest -q --junitxml=reports/tests.xml
+      - IMAGE_TAG=$CODEBUILD_RESOLVED_SOURCE_VERSION
       - echo Building the Docker image...          
-      - docker build -t blacklist-api:latest .
-      - docker tag blacklist-api:latest 358148451739.dkr.ecr.us-east-1.amazonaws.com/blacklist-api:latest
+      - docker build -t 358148451739.dkr.ecr.us-east-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG .
 
   post_build:
+    on-failure: ABORT
     commands:
+      - test "$CODEBUILD_BUILD_SUCCEEDING" = "1"
       - echo Build completed on `date`
       - echo Pushing the Docker image...
-      - docker push 358148451739.dkr.ecr.us-east-1.amazonaws.com/blacklist-api:latest
+      - docker push 358148451739.dkr.ecr.us-east-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - IMAGE_URI=$(docker inspect --format='{{index .RepoDigests 0}}' 358148451739.dkr.ecr.us-east-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG)
       - echo Writing Image Definitions file...
-      - printf '[{"name":"Container-app-python","imageUri":"358148451739.dkr.ecr.us-east-1.amazonaws.com/blacklist-api:latest"}]' > imagedefinitions.json
-      - printf '{"ImageURI":"358148451739.dkr.ecr.us-east-1.amazonaws.com/blacklist-api:latest"}' > imageDetail.json
-      - cat imagedefinitions.json 
+      - printf '{"ImageURI":"%s"}' "$IMAGE_URI" > imageDetail.json
 
 reports:
   pytest_reports:
@@ -45,14 +49,6 @@ reports:
 
 artifacts:
   files:
-    - '**/*'
-    - imagedefinitions.json
+    - appspec.yaml
+    - taskdef.json
     - imageDetail.json
-  secondary-artifacts:
-    DefinitionArtifact:
-      files:
-        - appspec.yaml
-        - taskdef.json
-    ImageArtifact:
-      files:
-        - imageDetail.json
