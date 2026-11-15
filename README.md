@@ -23,12 +23,9 @@
 
 ## Entrega 3
 
-- [video]()
-
-
-- [archivo analisis corridas pipeline despliegue continuo]()
-
-
+- [Documento de análisis de corridas CI/CD](docs/entrega3/Proyecto%201%20entrega%203%20%E2%80%93%20Documento.pdf)
+- [Canva del equipo](https://www.canva.com/design/DAHakZKRaHY/uHW8sbw8N8bPAGvH0W5G3Q/edit)
+- Video de sustentación: pendiente de grabar e integrar los segmentos de Santiago y Jesús; agregar aquí el enlace definitivo con acceso para el tutor.
 
 # Microservicio de lista negra
 
@@ -144,7 +141,7 @@ Los secretos provienen de SSM; no se incluyen valores en Git ni artefactos.
 
 La URL observada del balanceador es
 `http://blacklist-alb-451384455.us-east-1.elb.amazonaws.com`.
-Para Postman, sustituir `base_url` del environment por esta URL y configurar
+Para Postman, importar `postman/fargate.postman_environment.json` y configurar
 las credenciales autorizadas solo en la sesión local. Las pruebas locales
 usan SQLite/mocks; la colección contra Fargate valida el servicio desplegado.
 
